@@ -31,7 +31,7 @@
       "darkModeSupport": true
     },
     "dmg": {
-      "title": "CCTDM Installer"
+      "title": "CCTDM-Installer"
     },
     "files": [
       "electron/**/*",
