@@ -54,13 +54,13 @@ function startBackend() {
   );
 }
 
-function waitForBackend(port = 5000, retries = 30) {
+function waitForBackend(port = 5000, retries = 10) {
   return new Promise((resolve, reject) => {
     const attempt = () => {
       http
         .get(`http://localhost:${port}/health`, (res) => resolve())
         .on("error", () => {
-          if (retries-- > 0) setTimeout(attempt, 400);
+          if (retries-- > 0) setTimeout(attempt, 1000);
           else reject(new Error("Backend n'a pas démarré à temps"));
         });
     };
