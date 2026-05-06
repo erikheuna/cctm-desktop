@@ -1,0 +1,60 @@
+{
+  "name": "cctdm",
+  "version": "1.0.0",
+  "description": "TDM Number Extractor – Application desktop",
+  "type": "module",
+  "main": "electron/main.js",
+  "author": "erikheuna",
+  "scripts": {
+    "dev": "concurrently -n FRONT,BACK,ELECTRON -c cyan,green,yellow \"npm run dev --prefix frontend\" \"node backend/index.js\" \"wait-on http://localhost:5173 http://localhost:5000/health && electron .\"",
+    "build:frontend": "npm run build --prefix frontend",
+    "build": "npm run build:frontend && electron-builder",
+    "dist:mac": "npm run build:frontend && electron-builder --mac",
+    "dist:dmg": "npm run build:frontend && electron-builder --mac dmg"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0",
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0",
+    "wait-on": "^8.0.0"
+  },
+  "build": {
+    "appId": "com.cctdm.app",
+    "productName": "CCTDM",
+    "copyright": "Copyright © 2025 erikheuna",
+    "mac": {
+      "category": "public.app-category.productivity",
+      "icon": "assets/icon.icns",
+      "target": [
+        { "target": "dmg", "arch": ["x64", "arm64"] },
+        { "target": "zip", "arch": ["x64", "arm64"] }
+      ],
+      "darkModeSupport": true
+    },
+    "dmg": {
+      "title": "CCTDM Installer",
+      "icon": "assets/icon.icns"
+    },
+    "files": [
+      "electron/**/*",
+      "frontend/dist/**/*",
+      "!**/node_modules/**",
+      "!**/.git/**"
+    ],
+    "extraResources": [
+      {
+        "from": "backend",
+        "to": "backend",
+        "filter": ["**/*", "!node_modules/**"]
+      },
+      {
+        "from": "backend/node_modules",
+        "to": "backend/node_modules"
+      }
+    ],
+    "asar": true,
+    "asarUnpack": [
+      "node_modules/**/*.node"
+    ]
+  }
+}
