@@ -9,7 +9,7 @@
     "dev": "concurrently -n FRONT,BACK,ELECTRON -c cyan,green,yellow \"npm run dev --prefix frontend\" \"node backend/index.js\" \"wait-on http://localhost:5173 http://localhost:5000/health && electron .\"",
     "build:frontend": "npm run build --prefix frontend",
     "build": "npm run build:frontend && electron-builder",
-    "dist:mac": "npm run build:frontend && electron-builder --mac",
+    "dist:mac": "npm run build:frontend && electron-builder --mac --publish never",
     "dist:dmg": "npm run build:frontend && electron-builder --mac dmg"
   },
   "devDependencies": {
