@@ -20,7 +20,7 @@ const backendDir = isDev
 
 const frontendDist = isDev
   ? null
-  : path.join(__dirname, "../frontend/dist/index.html");
+  : path.join(app.getAppPath(), "frontend", "dist", "index.html");
 
 const userDataPath = app.getPath("userData");
 const uploadsDir = path.join(userDataPath, "uploads");
