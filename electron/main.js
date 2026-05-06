@@ -31,7 +31,9 @@ const resultsDir = path.join(userDataPath, "results");
 });
 
 function startBackend() {
-  backendProcess = spawn(execPath, ["index.js"], {
+  const nodeCmd = process.platform === "win32" ? "node.exe" : execPath;
+
+  backendProcess = spawn(nodeCmd, ["index.js"], {
     cwd: backendDir,
     env: {
       ...process.env,
@@ -49,9 +51,10 @@ function startBackend() {
   backendProcess.stderr.on("data", (d) =>
     console.error("[backend err]", d.toString().trim())
   );
-  backendProcess.on("exit", (code) =>
-    console.log(`[backend] exited with code ${code}`)
-  );
+  backendProcess.on("exit", (code) => {
+    console.log(`[backend] exited with code ${code}`);
+    backendProcess = null;
+  });
 }
 
 function waitForBackend(port = 5000, retries = 10) {
