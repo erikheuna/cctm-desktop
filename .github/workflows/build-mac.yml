@@ -1,41 +1,41 @@
-name: Build macOS DMG
+name: Build macOS et Windows
 
 on:
   push:
     branches: [main]
-  workflow_dispatch:  # Permet de lancer manuellement depuis GitHub
+  workflow_dispatch:
 
 jobs:
   build-mac:
     runs-on: macos-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
-
-      - name: Install root dependencies
-        run: npm install
-
-      - name: Install backend dependencies
-        run: cd backend && npm install
-
-      - name: Install frontend dependencies
-        run: cd frontend && npm install
-
-      - name: Build frontend
-        run: cd frontend && npm run build
-
-      - name: Build macOS DMG
-        run: npm run dist:mac
-
-      - name: Upload DMG artifact
-        uses: actions/upload-artifact@v4
+      - run: cd backend && npm install
+      - run: cd frontend && npm install
+      - run: npm install
+      - run: npm run dist:mac
+      - uses: actions/upload-artifact@v4
         with:
           name: CCTDM-mac
           path: dist/*.dmg
+          retention-days: 30
+
+  build-win:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: cd backend && npm install
+      - run: cd frontend && npm install
+      - run: npm install
+      - run: npm run dist:win
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CCTDM-windows
+          path: dist/*.exe
           retention-days: 30
