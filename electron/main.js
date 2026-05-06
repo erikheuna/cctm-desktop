@@ -88,6 +88,8 @@ async function createWindow() {
     },
   });
 
+  mainWindow.webContents.openDevTools();
+
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url);
     return { action: "deny" };
