@@ -1,4 +1,72 @@
+import { app, BrowserWindow, shell } from "electron";
+import { spawn } from "child_process";
+import { execPath } from "process";
+import path from "path";
+import http from "http";
+import { fileURLToPath } from "url";
+import fs from "fs";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+let mainWindow;
+let backendProcess;
 let isWindowCreated = false;
+
+const isDev = !app.isPackaged;
+
+const backendDir = isDev
+  ? path.join(__dirname, "../backend")
+  : path.join(process.resourcesPath, "backend");
+
+const frontendDist = isDev
+  ? null
+  : path.join(__dirname, "../frontend/dist/index.html");
+
+const userDataPath = app.getPath("userData");
+const uploadsDir = path.join(userDataPath, "uploads");
+const resultsDir = path.join(userDataPath, "results");
+
+[uploadsDir, resultsDir].forEach((dir) => {
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+});
+
+function startBackend() {
+  backendProcess = spawn(execPath, ["index.js"], {
+    cwd: backendDir,
+    env: {
+      ...process.env,
+      NODE_ENV: "production",
+      PORT: "5000",
+      UPLOADS_DIR: uploadsDir,
+      RESULTS_DIR: resultsDir,
+    },
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+
+  backendProcess.stdout.on("data", (d) =>
+    console.log("[backend]", d.toString().trim())
+  );
+  backendProcess.stderr.on("data", (d) =>
+    console.error("[backend err]", d.toString().trim())
+  );
+  backendProcess.on("exit", (code) =>
+    console.log(`[backend] exited with code ${code}`)
+  );
+}
+
+function waitForBackend(port = 5000, retries = 30) {
+  return new Promise((resolve, reject) => {
+    const attempt = () => {
+      http
+        .get(`http://localhost:${port}/health`, (res) => resolve())
+        .on("error", () => {
+          if (retries-- > 0) setTimeout(attempt, 400);
+          else reject(new Error("Backend n'a pas démarré à temps"));
+        });
+    };
+    attempt();
+  });
+}
 
 async function createWindow() {
   if (isWindowCreated) return;
@@ -9,7 +77,7 @@ async function createWindow() {
     height: 750,
     minWidth: 800,
     minHeight: 600,
-    title: "CCTDM – Number Extractor",
+    title: "CCTDM – TDM Number Extractor",
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       nodeIntegration: false,
@@ -43,9 +111,18 @@ app.whenReady().then(async () => {
   await createWindow();
 });
 
+app.on("window-all-closed", () => {
+  if (backendProcess) backendProcess.kill();
+  if (process.platform !== "darwin") app.quit();
+});
+
 app.on("activate", () => {
-  if (BrowserWindow.getAllWindows().length === 0 && isWindowCreated) {
+  if (BrowserWindow.getAllWindows().length === 0) {
     isWindowCreated = false;
     createWindow();
   }
+});
+
+app.on("before-quit", () => {
+  if (backendProcess) backendProcess.kill();
 });
